@@ -1,0 +1,593 @@
+jenkins:
+  systemMessage: "<b>AMQ Streams CSB jenkins instance</b><br><b>Maintainers:</b><br><b>&emsp;- Lukas Kral</b> lkral@redhat.com<br><b>&emsp;- David Kornel</b> dkornel@redhat.com<br><b>&emsp;- Jakub Stejskal</b> jstejska@redhat.com<br><b>&emsp;- Group mailing-list</b> strimzi-ci@redhat.com<br><br><b>Configuration repository:</b><br>&emsp;- <a href=\"https://gitlab.cee.redhat.com/strimzi/strimzi-ci\">strimzi-ci</a>"
+  numExecutors: 10
+  quietPeriod: 0
+
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: STRIMZI_MAILING_LIST
+            value: strimzi-ci@redhat.com
+
+  markupFormatter:
+    rawHtml:
+      disableSyntaxHighlighting: false
+
+  securityRealm:
+    ldap:
+      cache:
+        size: 100
+        ttl: 10
+      configurations:
+        - server: ldaps://ldap.corp.redhat.com
+          rootDN: dc=redhat,dc=com
+          displayNameAttributeName: cn
+          inhibitInferRootDN: false
+          userSearch: uid={0}
+          groupSearchBase: ou=adhoc,ou=managedGroups
+          groupSearchFilter: (& (cn={0}) (objectclass=GroupOfUniqueNames))
+      userIdStrategy: CaseInsensitive
+      groupIdStrategy: CaseInsensitive
+      disableRolePrefixing: true
+
+  
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: true
+  agentProtocols:
+    - "JNLP4-connect"
+    - "Ping"
+
+  nodes:
+  - permanent: # rhv ppc64le vm1 rhel8
+      labelString: "ppc64le-rhel8-vm1 ppc64le amq-streams-rhel-ppc64le amq-streams-rhel-ppc"
+      launcher:
+        ssh:
+          credentialsId: "ppc64le-psi-rhv-key"
+          host: "10.0.82.39"
+          port: 22
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      name: "ppc64le-rhel8-vm1"
+      nodeDescription: "RHEL8 ppc64le VM at PSI RHV"
+      numExecutors: 1
+      remoteFS: "/home/amqs/jenkins/"
+      retentionStrategy: "always"
+  - permanent: # rhv ppc64le vm2 rhel8
+      labelString: "ppc64le-rhel8-vm2 ppc64le amq-streams-ocp-ppc64le amq-streams-rhel-ppc"
+      launcher:
+        ssh:
+          credentialsId: "ppc64le-psi-rhv-key"
+          host: "10.0.83.197"
+          port: 22
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      name: "ppc64le-rhel8-vm2"
+      nodeDescription: "RHEL8 ppc64le VM at PSI RHV"
+      numExecutors: 1
+      remoteFS: "/home/amqs/jenkins/"
+      retentionStrategy: "always"
+  - permanent: # rhv ppc64le vm1 rhel9
+      labelString: "ppc64le-rhel9-vm1 ppc64le amq-streams-rhel-ppc64le amq-streams-rhel-ppc"
+      launcher:
+        ssh:
+          credentialsId: "ppc64le-psi-rhv-key"
+          host: "10.0.80.50"
+          port: 22
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      name: "ppc64le-rhel9-vm1"
+      nodeDescription: "RHEL9 ppc64le VM at PSI RHV"
+      numExecutors: 1
+      remoteFS: "/home/amqs/jenkins/"
+      retentionStrategy: "always"
+
+  - permanent: # s390x KVM
+      labelString: "amqjen1-s390x s390x amq-streams-rhel-s390x amq-streams-rhel-Z"
+      launcher:
+        ssh:
+          credentialsId: "cloud-user-ssh"
+          host: "10.0.158.211"
+          port: 22
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      name: "amqjen1-s390x"
+      nodeDescription: "RHEL8  KVM at PSI"
+      numExecutors: 1
+      remoteFS: "/home/cloud-user/jenkins"
+      retentionStrategy: "always"
+
+  - permanent: # s390x KVM
+      labelString: "amqjen2-s390x s390x amq-streams-rhel-s390x amq-streams-rhel-Z"
+      launcher:
+        ssh:
+          credentialsId: "cloud-user-ssh"
+          host: "10.0.158.212"
+          port: 22
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      name: "amqjen2-s390x"
+      nodeDescription: "RHEL8  KVM at PSI"
+      numExecutors: 1
+      remoteFS: "/home/cloud-user/jenkins"
+      retentionStrategy: "always"
+
+##########################################################################
+# security
+##########################################################################
+security:
+  globalJobDslSecurityConfiguration:
+    # Permit Job DSL to be run without the hassle of script security
+    useScriptSecurity: false
+  sSHD:
+    port: 50022
+  apiToken:
+    creationOfLegacyTokenEnabled: false
+    tokenGenerationOnCreationEnabled: false
+    usageStatisticsEnabled: true
+  scriptApproval:
+    approvedSignatures:
+      - "method java.lang.Throwable printStackTrace java.io.PrintWriter"
+      - "method groovy.json.JsonSlurperClassic parseText java.lang.String"
+      - "method hudson.plugins.git.GitSCM getUserRemoteConfigs"
+      - "method hudson.plugins.git.UserRemoteConfig getUrl"
+      - "method java.io.File createNewFile"
+      - "new groovy.json.JsonSlurperClassic"
+      - "new java.io.File java.lang.String"
+      - "new java.util.HashMap java.util.Map"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods getAt java.lang.Object\
+        \ java.lang.String"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods getAt java.util.Collection\
+        \ java.lang.String"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods leftShift java.io.File\
+        \ java.lang.Object"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods write java.io.File\
+        \ java.lang.String"
+      - "method hudson.model.Item getName"
+      - "method hudson.model.Item getFullName"
+      - "staticMethod jenkins.model.Jenkins getInstance"
+      - "method hudson.model.ItemGroup getAllItems java.lang.Class"
+      - "method hudson.model.Job isBuildable"
+      - "method jenkins.model.ParameterizedJobMixIn$ParameterizedJob makeDisabled boolean"
+      - "staticMethod java.lang.System getProperty java.lang.String"
+      - "new java.lang.StringBuilder java.lang.String"
+      - "method java.lang.AbstractStringBuilder insert int java.lang.CharSequence"
+      - "new org.yaml.snakeyaml.Yaml"
+      - "method org.yaml.snakeyaml.Yaml load java.lang.String"
+      - "staticMethod groovy.json.JsonOutput toJson java.lang.Object"
+      
+      \*
+
+  kerberosSso:
+    enabled: true
+    krb5Location: '/etc/krb5.conf'
+    loginLocation: '/etc/login.conf'
+    loginServerModule: 'spnego-server'
+    loginClientModule: 'spnego-client'
+    anonymousAccess: true
+    allowLocalhost: false
+    allowBasic: true
+    allowDelegation: false
+    # While strictly speaking insecure, this is a) required for localhost access
+    # and b) harmless in production that does not support http at all
+    allowUnsecureBasic: true
+    promptNtlm: false
+    */
+
+##########################################################################
+# rest of plugins configuration
+##########################################################################
+/*
+unclassified:
+  location:
+    adminAddress: "AMQ Streams Jenkins CI <kafka-jenkins@redhat.com>"
+
+  globalConfigFiles:
+    configs:
+      - openstackUserData:
+          id: add-redhat-certs
+          name: "add-redhat-certs"
+          content: |
+            #!/bin/bash
+            wget https://password.corp.redhat.com/legacy.crt -O - | sudo certutil -d sql:/etc/pki/nssdb -A -t "C,," -n RedHat_CA_Legacy
+            wget https://password.corp.redhat.com/RH-IT-Root-CA.crt -O - | sudo certutil -d sql:/etc/pki/nssdb -A -t "C,," -n RedHat_CA
+  shell:
+    shell: "bash"
+
+  globalCachetConfiguration:
+    cachetUrl: "https://internal.status.redhat.com/api/v1/"
+    ignoreSSL: true
+
+  globalLibraries:
+    libraries:
+      - defaultVersion: "master"
+        name: "strimzi-ci"
+        retriever:
+          modernSCM:
+            scm:
+              git:
+                remote: "https://gitlab.cee.redhat.com/strimzi/strimzi-ci.git"
+                traits:
+                  - "gitBranchDiscovery"
+  pollSCM:
+    pollingThreadCount: 20
+
+  simple-theme-plugin:
+    elements:
+      - cssUrl:
+          url: "https://cdn.jsdelivr.net/gh/im-konge/jenkins-theme@latest/strimzi/theme.css"
+      - jsUrl:
+          url: "https://cdn.jsdelivr.net/gh/im-konge/jenkins-theme@latest/strimzi/theme.js"
+
+  githubpluginconfig:
+    configs:
+      - name: "Strimzi github"
+        apiUrl: "https://api.github.com"
+        credentialsId: "strimzi-ci-github-token"
+        manageHooks: true
+
+  ghprbTrigger:
+    extensions:
+      - ghprbSimpleStatus:
+          addTestResults: true
+          commitStatusContext: "Jenkins"
+          showMatrixStatus: false
+          statusUrl: "--none--"
+  mailer:
+    charset: "UTF-8"
+    defaultSuffix: "@redhat.com"
+    smtpHost: "smtp.corp.redhat.com"
+    useSsl: false
+
+  jmsProviders:
+    configs:
+      - activeMq:
+          name: "Red Hat UMB" # Do not change this name for UMB
+          broker: "failover:(ssl://umb-broker03.api.redhat.com:61616,ssl://umb-broker04.api.redhat.com:61616)"
+          authenticationMethod:
+            sslCertificate:
+              keystore: "/run/secrets/casc-secret/amq-streams-ci-bot.jks"
+              keypwd: "${casc-secret/AMQ_STREAMS_CI_BOT_KEYSTORE_PASS}"
+              truststore: "/run/secrets/managed-secret/redhat-ci-truststore.jks"
+              trustpwd: "${managed-secret/redhat-ci-stores}"
+          topicProvider: "umb"
+          useQueues: true
+
+  gitLabConnectionConfig:
+    connections:
+      - apiTokenId: "strimzi-ci-bot"
+        clientBuilderId: "autodetect"
+        connectionTimeout: 20
+        ignoreCertificateErrors: true
+        name: "gitlab-cee"
+        readTimeout: 12
+        url: "https://gitlab.cee.redhat.com"
+    useAuthenticatedEndpoint: false
+
+  sidebarGlobalLink:
+    links:
+      - reportPortal:
+        displayName: "Report Portal"
+        iconFileName: "/userContent/report-portal.png"
+        urlName: "https://reportportal-amq-streams.apps.ocp-c1.prod.psi.redhat.com"
+      - polarion:
+        displayName: "Polarion"
+        iconFileName: "/userContent/polarion.png"
+        urlName: "https://polarion.engineering.redhat.com/polarion/#/project/KAFKA/home"
+        */
+
+##########################################################################
+# casc config
+##########################################################################
+configuration-as-code:
+  deprecated: warn
+
+
+##########################################################################
+# Credentials
+##########################################################################
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+      /*
+          - openstackV3:
+              description: "credentials for openstack cloud"
+              id: "openstack-credentials"
+              password: "${casc-secret/OPENSTACK_ADMIN_PASSW}"
+              projectDomain: "redhat.com"
+              projectName: "maas-jenkins"
+              userDomain: "redhat.com"
+              userName: "maas-jenkins-admin"
+              */
+          - basicSSHUserPrivateKey:
+              id: "cloud-user-ssh"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${casc-secret/CLOUD_USER_KAFKA_KEY}"
+              scope: GLOBAL
+              username: "cloud-user"
+          - basicSSHUserPrivateKey:
+              id: "root-kafka-ssh"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${casc-secret/CLOUD_USER_KAFKA_KEY}"
+              scope: GLOBAL
+              username: "root"
+          - usernamePassword:
+              description: "github enmasse account"
+              id: "enmasse-ci-github"
+              password: "${casc-secret/ENMASSE_CI_PASSWORD}"
+              scope: GLOBAL
+              username: "enmasse-ci"
+          - usernamePassword:
+              description: "credentials for polarion reporting"
+              id: "polarion_credentials"
+              password: "${casc-secret/POLARION_USER_PASSW}"
+              scope: GLOBAL
+              username: "amq_machine"
+          - usernamePassword:
+              description: "ocp 4 cluster admin"
+              id: "ocp4-upstream-credentials"
+              password: "admin"
+              scope: GLOBAL
+              username: "admin"
+          - usernamePassword:
+              description: "Strimzi CI account credentials with password"
+              id: "strimzi-ci-account-password"
+              password: "${casc-secret/STRIMZI_CI_PASSW}"
+              scope: GLOBAL
+              username: "strimzi-ci"
+          - usernamePassword:
+              description: "Strimzi CI account credentials with token"
+              id: "strimzi-ci-account-token"
+              password: "${casc-secret/STRIMZI_CI_GITHUB_TOKEN}"
+              scope: GLOBAL
+              username: "strimzi-ci"
+          - string:
+              description: "enmasse-ci github token"
+              id: "enmasse-ci-github-token"
+              scope: GLOBAL
+              secret: "${casc-secret/ENMASSE_CI_GITHUB_TOKEN}"
+          - basicSSHUserPrivateKey:
+              description: "account for builder"
+              id: "root-cci-key"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${casc-secret/CCI_KEY}"
+              scope: GLOBAL
+              username: "root"
+          - string:
+              description: "openstack kafka ssh"
+              id: "openstack-kafka-key"
+              scope: GLOBAL
+              secret: "${casc-secret/CLOUD_USER_KAFKA_KEY}"
+          - string:
+              description: "strimzi-ci github token"
+              id: "strimzi-ci-github-token"
+              scope: GLOBAL
+              secret: "${casc-secret/STRIMZI_CI_GITHUB_TOKEN}"
+          - string:
+              description: "dkornel crc secret"
+              id: "crc-secret"
+              scope: GLOBAL
+              secret: "${casc-secret/CRC_SECRET}"
+          - usernamePassword:
+              description: "registry.redhat.io account"
+              id: "registry-user"
+              password: "${casc-secret/REGISTRY_REDHAT_IO_PASSW}"
+              scope: GLOBAL
+              username: "10918904|amq-online-ci"
+          - usernamePassword:
+              description: "stage.registry.redhat.io account"
+              id: "stage-registry-user"
+              password: "${casc-secret/STAGE_REGISTRY_REDHAT_IO_PASSW}"
+              scope: GLOBAL
+              username: "6340056|amq-streams-qe"
+          - string:
+              scope: GLOBAL
+              id: "awscredentials"
+              description: "aws credentials"
+              secret: "${casc-secret/AMQ_AWS_CREDENTIALS}"
+          - string:
+              scope: GLOBAL
+              id: "iptawscredentials"
+              description: "ipt aws credentials"
+              secret: "${casc-secret/IPT_AWS_CREDENTIALS}"
+          - string:
+              scope: GLOBAL
+              id: "report-portal-secret"
+              description: "report portal secret for reporting"
+              secret: "${casc-secret/REPORT_PORTAL_SECRET}"
+          - string:
+              scope: GLOBAL
+              id: "dns-key"
+              description: "dns key for nsupdate"
+              secret: "${casc-secret/DNS_KEY}"
+          - string:
+              scope: GLOBAL
+              id: "dns-private"
+              description: "dns private for nsupdate"
+              secret: "${casc-secret/DNS_PRIVATE}"
+          - string:
+              scope: GLOBAL
+              id: "amq-aws-account-id"
+              description: "AMQ AWS account ID"
+              secret: "${casc-secret/AMQ_AWS_CREDENTIALS_ACCOUNT_ID}"
+          - string:
+              scope: GLOBAL
+              id: "amq-aws-credentials-csv"
+              description: "AMQ AWS credentials in CSV"
+              secret: "${casc-secret/AMQ_AWS_CREDENTIALS_CSV}"
+          - string:
+              scope: GLOBAL
+              id: "amq-osd-aws-credentials-csv"
+              description: "AMQ OSD AWS credentials in CSV (for user osdCcsAdmin needed for OSD)"
+              secret: "${casc-secret/AMQ_OSD_AWS_CREDENTIALS_CSV}"
+          - string:
+              scope: GLOBAL
+              id: "integration-aws-account-id"
+              description: "Integration AWS account ID"
+              secret: "${casc-secret/INTEGRATION_AWS_ACCOUNT_ID}"
+          - string:
+              scope: GLOBAL
+              id: "integration-aws-credentials-csv"
+              description: "Integration AWS credentials in CSV"
+              secret: "${casc-secret/INTEGRATION_AWS_CREDENTIALS_CSV}"
+          - string:
+              scope: GLOBAL
+              id: "integration-ocm-token"
+              description: "Integration OCM token to see OSD clusters"
+              secret: "${casc-secret/INTEGRATION_OCM_TOKEN}"
+          - string:
+              scope: GLOBAL
+              id: "amq-streams-ocm-token"
+              description: "AMQ Streams OCM token to see OSD clusters"
+              secret: "${casc-secret/AMQ_STREAMS_OCM_TOKEN}"
+          - string:
+              scope: GLOBAL
+              id: "brew-secret"
+              description: "brew secret for registry"
+              secret: "${casc-secret/BREW_SECRET}"
+          - usernamePassword:
+              description: "docker hub strimzi account"
+              id: "dockerhub-credentials"
+              password: "${casc-secret/DOCKERHUB_PASSWORD}"
+              scope: GLOBAL
+              username: "strimzirobot"
+          - usernamePassword:
+              description: "quay.io rh_integration login"
+              id: "rh-integration-credentials"
+              password: "${casc-secret/RH_INTEGRATION_PASSW}"
+              scope: GLOBAL
+              username: "rh_integration+amq"
+          - string:
+              description: "Jenkins service account token for jenkins-csb-amq-streams in PSI OpenShift"
+              id: "jenkins-csb-amq-streams-sa"
+              scope: GLOBAL
+              secret: "${casc-secret/KUBERNETES_SECRET}"
+              /*
+          - gitLabApiTokenImpl:
+              apiToken: "${casc-secret/GITLAB_TOKEN}"
+              description: "gitlab api key for strimzi-ci-bot"
+              id: "strimzi-ci-bot-token"
+              scope: GLOBAL
+              */
+          - usernamePassword:
+              id: "strimzi-ci-bot"
+              username: "strimzi-ci-bot"
+              password: "${casc-secret/GITLAB_TOKEN}"
+              scope: GLOBAL
+          - string:
+              description: "Webhook key for gchat room"
+              id: "gchat-webhook-key"
+              scope: GLOBAL
+              secret: "${casc-secret/GCHAT_WEBHOOK_KEY}"
+          - string:
+              description: "Webhook token for gchat room"
+              id: "gchat-webhook-token"
+              scope: GLOBAL
+              secret: "${casc-secret/GCHAT_WEBHOOK_TOKEN}"
+          - usernamePassword: # ppc64le KVM
+              description: "Creds for AMQ-Streams ppc64le KVMs at PSI"
+              id: "ppc64le-psi-kvm-creds"
+              password: "${casc-secret/PPC64LE_PSI_KVM_PASSW}"
+              scope: GLOBAL
+              username: "root"
+              usernameSecret: true
+          - basicSSHUserPrivateKey:  # ppc64le KVM
+              description: "SSH keys for ppc64le KVM at PSI"
+              id: "ppc64le-psi-kvm-key"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${casc-secret/PPC64LE_PSI_KVM_KEY}"
+              scope: GLOBAL
+              username: "root"
+              usernameSecret: true
+              passphrase: ""
+          - basicSSHUserPrivateKey:  # ppc64le RHV VM
+              description: "SSH keys for ppc64le RHV VM at PSI"
+              id: "ppc64le-psi-rhv-key"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${casc-secret/PPC64LE_PSI_RHV_KEY}"
+              scope: GLOBAL
+              username: "root"
+              usernameSecret: true
+              passphrase: ""
+          - usernamePassword:
+              description: "ARO ServicePrincipal login"
+              id: "aro-sr-password"
+              password: "${casc-secret/ARO_SR_PASSWORD}"
+              scope: GLOBAL
+              username: "b22c1d82-0a4c-4a7d-9e6b-810a8fc664d2"
+          - usernamePassword:
+              id: "amq-streams-sa"
+              username: "amq-streams-sa"
+              password: "${casc-secret/AMQ_STREAMS_INTERNAL_SSO_SA_PASSWORD}"
+              scope: GLOBAL
+tool:
+  git:
+    installations:
+      - name: git
+        home: /usr/bin/git
+##########################################################################
+# seeds
+##########################################################################
+jobs:
+#  - url: https://gitlab.cee.redhat.com/ccit/monitoring-seed/raw/master/seed.groovy
+#  - url: https://gitlab.cee.redhat.com/strimzi/strimzi-ci/raw/master/src/jenkins/casc/jobs/tools/seeds/seed.groovy
+  - script: >
+      myPipelineJobs = [MonitoringTest: 'https://gitlab.cee.redhat.com/ccit/monitoring-test.git']
+      myPipelineJobs.each { jobName, repoURL ->
+          pipelineJob("$jobName") {
+              description( "$repoURL" )
+              authenticationToken('myverylongtoken')
+              definition {
+                  cpsScm {
+                      scm {
+                          git {
+                              remote {
+                                  url("$repoURL")
+                              }
+                              extensions { }
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  - script: >
+      job("job-configurator") {
+          label("built-in")
+          description("job dsl seed")
+          concurrentBuild(false)
+          logRotator {
+              numToKeep(30)
+          }
+          steps {
+              jobDsl {
+                  targets('**/**/*dsl.groovy')
+                  removedJobAction('DISABLE')
+                  removedViewAction('DELETE')
+                  additionalClasspath('src \n **/**/*.groovy')
+                  sandbox(true)
+              }
+              downstreamParameterized {
+                  trigger("tools/gating/create-gating-rules/") 
+              }
+          }
+          triggers {
+              scm('H/2 * * * *')
+          }
+          scm {
+              git {
+                  branch("*/master")
+                  remote {
+                      url("https://gitlab.cee.redhat.com/strimzi/strimzi-ci.git")
+                  }
+              }
+          }
+      }
+  #=- script: "queue('tools/job-dsl-seed')"
+#  - script: "queue('tools/job-dsl-seed')"
